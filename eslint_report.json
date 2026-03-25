@@ -1,0 +1,19 @@
+[0m[0m
+[0m[4mD:\Apps\Practice\src\App.tsx[24m[0m
+[0m    [2m1:28[22m  [31merror[39m  'useEffect' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m40:49[22m  [31merror[39m  Error: Cannot call impure function during render[0m
+[0m[0m
+[0m`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).[0m
+[0m[0m
+[0mD:\Apps\Practice\src\App.tsx:40:49[0m
+[0m  38 |[0m
+[0m  39 |     const possibleMoves = chessGame.moves();[0m
+[0m> 40 |     const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];[0m
+[0m     |                                                 ^^^^^^^^^^^^^ Cannot call impure function[0m
+[0m  41 |     chessGame.move(randomMove);[0m
+[0m  42 |     setChessPosition(chessGame.fen());[0m
+[0m  43 |  [2mreact-hooks/purity[22m[0m
+[0m  [2m118:73[22m  [31merror[39m  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
+[0m[31m[1m✖ 3 problems (3 errors, 0 warnings)[22m[39m[0m
+[0m[31m[1m[22m[39m[0m
