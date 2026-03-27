@@ -80,7 +80,7 @@ export class StockfishEngine extends BaseStockfishEngine implements MoveEngine {
 
     private updateConfiguration() {
         this.postCommand('setoption name UCI_LimitStrength value true');
-        this.postCommand(`setoption name UCI_Elo value ${Math.max(1320, this.elo)}`);
+        this.postCommand(`setoption name UCI_Elo value ${Math.max(1350, this.elo)}`);
     }
 
     async getNextMove(chessGame: Chess): Promise<string | null> {
@@ -95,15 +95,10 @@ export class StockfishEngine extends BaseStockfishEngine implements MoveEngine {
             this.bestMove = null;
 
             this.postCommand(`position fen ${chessGame.fen()}`);
-            this.postCommand('go depth 13');
+            this.postCommand('go movetime 2000'); // 1 second
 
-            setTimeout(() => {
-                if (this.moveResolver && !this.bestMove) {
-                    console.warn('⏱️ Stockfish timeout, using fallback');
-                    this.moveResolver(moves[0].san);
-                    this.moveResolver = null;
-                }
-            }, 5000);
+
+
         });
     }
 

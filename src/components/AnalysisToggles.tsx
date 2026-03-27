@@ -4,6 +4,7 @@ import type { AnalysisState } from '../types';
 interface AnalysisTogglesProps {
   state: AnalysisState;
   onToggle: (key: keyof AnalysisState) => void;
+
 }
 
 const AnalysisToggles: React.FC<AnalysisTogglesProps> = ({ state, onToggle }) => {
@@ -43,3 +44,4 @@ const AnalysisToggles: React.FC<AnalysisTogglesProps> = ({ state, onToggle }) =>
 };
 
 export default AnalysisToggles;
+

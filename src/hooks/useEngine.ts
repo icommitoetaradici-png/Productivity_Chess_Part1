@@ -34,20 +34,39 @@ export function useEngine(game: any) {
 
         // handle premoves
         if (game.premovesRef.current.length > 0) {
-            const nextPremove = game.premovesRef.current.shift()!;
+            const nextPlayerPremove = game.premovesRef.current[0];
+            game.premovesRef.current.splice(0, 1);
+
+            // wait for CPU move animation to complete
             setTimeout(() => {
-                onPieceDrop(nextPremove);
+                // execute the premove
+                const premoveSuccessful = onPieceDrop(nextPlayerPremove);
+
+                // if the premove was not successful, clear all premoves
+                if (!premoveSuccessful) {
+                    game.premovesRef.current = [];
+                }
+
+                // update the premoves state
                 game.setPremoves([...game.premovesRef.current]);
-            }, 250);
+
+                // disable animations while clearing premoves
+                game.setShowAnimations(false);
+
+                // re-enable animations after a short delay
+                setTimeout(() => {
+                    game.setShowAnimations(true);
+                }, 50);
+            }, 300);
         }
     };
 
-    return { 
-        elo, 
-        isRandom, 
-        isThinking, 
-        handleEloChange, 
-        handleModeToggle, 
+    return {
+        elo,
+        isRandom,
+        isThinking,
+        handleEloChange,
+        handleModeToggle,
         makeEngineMove,
         terminate: () => engine.terminate?.()
     };

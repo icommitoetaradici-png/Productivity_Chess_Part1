@@ -4,6 +4,7 @@ import type { PieceDropHandlerArgs, PieceRenderObject } from 'react-chessboard';
 import React from 'react';
 import type { PromotionMove } from '../types';
 
+
 interface PromotionDialogProps {
     promotionMove: PromotionMove | null;
     turn: 'w' | 'b';
@@ -22,6 +23,7 @@ export const PromotionDialog: React.FC<PromotionDialogProps> = ({
     const pieces: PieceSymbol[] = ['q', 'r', 'n', 'b'];
     const isBottom = promotionMove.targetSquare.endsWith('8');
     const colIndex = chessColumnToColumnIndex(promotionMove.targetSquare[0], 8, 'white');
+
 
     return (
         <>
@@ -58,8 +60,13 @@ interface BoardProps {
     onPieceDrop: (args: PieceDropHandlerArgs) => boolean;
     onSquareClick: (args: any) => void;
     onSquareRightClick: () => void;
+    arrows: any;
+    canDragPieces: any,
 }
 
 export const BoardComponent: React.FC<BoardProps> = (props) => (
-    <Chessboard options={{ ...props, showAnimations: true, id: 'chess-board', darkSquareStyle: { backgroundColor: 'rgb(64,64,64)' }, lightSquareStyle: { backgroundColor: 'white' } }} />
+
+
+    <Chessboard options={{ ...props, showAnimations: true, id: 'chess-board', darkSquareStyle: { backgroundColor: 'rgb(64,64,64)' }, lightSquareStyle: { backgroundColor: 'white' }, animationDurationInMs: 400, }} />
+
 );

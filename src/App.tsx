@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { fenStringToPositionObject } from 'react-chessboard';
-import type { PieceDropHandlerArgs, SquareHandlerArgs } from 'react-chessboard';
+import type { PieceDropHandlerArgs, PieceHandlerArgs, SquareHandlerArgs } from 'react-chessboard';
 import type { PieceSymbol } from 'chess.js';
 
 import { useChessGame } from './MainFunctions/useChessGame';
@@ -22,11 +22,14 @@ import type { AnalysisState } from './types';
 
 export default function App() {
   const game = useChessGame();
-  
+
+
   // Logic Hooks
   const { currentEval, mateIn, diff, registerMoveForAnalysis, clearAnalysis } = useEvaluation(game.chessGame, game.position);
   const { elo, isRandom, isThinking, handleEloChange, handleModeToggle, makeEngineMove } = useEngine(game);
   const { openingName, bookMoves } = useBookMoves(game.position);
+
+
 
   const [analysis, setAnalysis] = useState<AnalysisState>({
     isPinned: false,
@@ -79,6 +82,17 @@ export default function App() {
       game.setPromotionMove({ sourceSquare, targetSquare });
       return true;
     }
+    const pieceColor = piece.pieceType[0]; // 'w' or 'b'
+    if (game.chessGame.turn() !== pieceColor) {
+      game.premovesRef.current.push({
+        sourceSquare,
+        targetSquare,
+        piece
+      });
+      game.setPremoves([...game.premovesRef.current]);
+      // return early to stop processing the move and return true to not animate the move
+      return true;
+    }
 
     if (moveHandler.current.executeMove(sourceSquare, targetSquare, 'q')) {
       const newFen = game.chessGame.fen();
@@ -90,6 +104,7 @@ export default function App() {
       setTimeout(() => makeEngineMove(onPieceDrop), 500);
       return true;
     }
+
 
     return false;
   };
@@ -116,27 +131,60 @@ export default function App() {
   };
 
   const onSquareRightClick = () => {
-    game.premovesRef.current = [];
-    game.setPremoves([]);
-    game.resetMoveState();
+    game.resetMoveState(true);
   };
 
   const handleUndo = () => {
     if (isThinking) return;
-    game.undo();
-    if (game.chessGame.turn() === 'w') game.undo();
+    const turn = game.chessGame.turn();
+    const count = turn === 'b' ? 1 : 2;
+    game.undo(count);
     clearAnalysis();
   };
 
   // --- UI Board Setup ---
   const currentPosition = fenStringToPositionObject(game.position, 8, 8);
-  const finalSquareStyles: Record<string, React.CSSProperties> = { ...visualStyles };
+  const finalSquareStyles: Record<string, React.CSSProperties> = {
+    ...visualStyles.styles, // <-- use the styles object
+  };
   game.premoves.forEach(p => {
     delete currentPosition[p.sourceSquare];
     currentPosition[p.targetSquare!] = { pieceType: p.piece.pieceType };
     finalSquareStyles[p.sourceSquare] = { backgroundColor: 'rgba(255,0,0,0.2)' };
     finalSquareStyles[p.targetSquare!] = { backgroundColor: 'rgba(255,0,0,0.2)' };
   });
+
+
+
+
+  ////////////// Premoving logics
+
+  function canDragPiece({
+    piece
+  }: PieceHandlerArgs) {
+    return piece.pieceType[0] === 'w';
+  }
+
+  // create a position object from the fen string to split the premoves from the game state
+  const position = fenStringToPositionObject(game.position, 8, 8);
+  const squareStyles: Record<string, React.CSSProperties> = {};
+
+  // add premoves to the position object to show them on the board
+  for (const premove of game.premoves) {
+    delete position[premove.sourceSquare];
+    position[premove.targetSquare!] = {
+      pieceType: premove.piece.pieceType
+    };
+    squareStyles[premove.sourceSquare] = {
+      backgroundColor: 'rgba(255,0,0,0.2)'
+    };
+    squareStyles[premove.targetSquare!] = {
+      backgroundColor: 'rgba(255,0,0,0.2)'
+    };
+  }
+
+
+
 
   return (
     <div className="flex w-screen min-h-screen items-center justify-center bg-black p-4 md:p-8 font-sans antialiased text-white">
@@ -156,10 +204,12 @@ export default function App() {
             onPieceDrop={onPieceDrop}
             onSquareClick={onSquareClick}
             onSquareRightClick={onSquareRightClick}
+            arrows={visualStyles.arrows}
+            canDragPieces={canDragPiece}
           />
-          <MoveAnalysis 
-            diff={diff} 
-            mate={mateIn} 
+          <MoveAnalysis
+            diff={diff}
+            mate={mateIn}
             openingName={openingName}
             bookMoves={bookMoves}
           />
@@ -175,7 +225,8 @@ export default function App() {
             onToggleMode={handleModeToggle}
             onUndo={handleUndo}
           />
-          <AnalysisToggles state={analysis} onToggle={toggleAnalysis} />
+          <AnalysisToggles state={analysis} onToggle={toggleAnalysis}        // pass state to AnalysisToggles
+          />
 
         </div>
       </div>

@@ -42,7 +42,7 @@ export function useEvaluation(chessGame: any, position: string) {
 
         evalEngineRef.current = engineInstance;
         return () => engineInstance.terminate();
-    }, [chessGame]);
+    }, []);
 
     useEffect(() => {
         if (!evalEngineRef.current) return;
