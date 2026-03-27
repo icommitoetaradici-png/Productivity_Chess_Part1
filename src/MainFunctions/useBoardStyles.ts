@@ -252,7 +252,7 @@ export const useBoardStyles = ({
     }
 
     // Forks arrows
-    for (const [origin, { forkSquares, targets }] of forksByPiece.entries()) {
+    for (const [_, { forkSquares, targets }] of forksByPiece.entries()) {
       forkSquares.forEach(fksq => {
         targets.forEach(target =>
           arrows.push({ startSquare: fksq, endSquare: target, color: 'cyan' }
