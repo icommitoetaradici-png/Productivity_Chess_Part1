@@ -13,12 +13,18 @@ import { useEngine } from './hooks/useEngine';
 import { useBookMoves } from './hooks/useBookMoves';
 
 import EvalBar from './components/EvalBar';
-import EngineControls from './components/EngineControls';
-import AnalysisToggles from './components/AnalysisToggles';
+import EngineControls, { Undobutton } from './components/EngineControls';
 import { PromotionDialog, BoardComponent } from './components/BoardComponents';
 import MoveAnalysis from './components/MoveAnalysis';
 
-import type { AnalysisState } from './types';
+import { SettingsPanel, type AppSettings } from './components/SettingsPanel';
+
+// Custom settings option///////////////
+import { IoSettings } from "react-icons/io5";
+
+//////////////////////////////////////////
+
+
 
 export default function App() {
   const game = useChessGame();
@@ -26,12 +32,19 @@ export default function App() {
 
   // Logic Hooks
   const { currentEval, mateIn, diff, registerMoveForAnalysis, clearAnalysis } = useEvaluation(game.chessGame, game.position);
-  const { elo, isRandom, isThinking, handleEloChange, handleModeToggle, makeEngineMove } = useEngine(game);
+  const { elo, isThinking, handleEloChange, handleModeToggle, makeEngineMove } = useEngine(game);
   const { openingName, bookMoves } = useBookMoves(game.position);
 
+  const [boardColors, setBoardColors] = useState({ light: 'white', dark: 'rgb(64,64,64)' });
+  const [animationDuration, setAnimationDuration] = useState(400);
 
-
-  const [analysis, setAnalysis] = useState<AnalysisState>({
+  const [appSettings, setAppSettings] = useState<AppSettings>({
+    enableUndo: true,
+    enablePremove: true,
+    autoPromoteToQueen: false,
+    enableAnalysis: true,
+    showEngineReaction: true,
+    showBookMoves: true,
     isPinned: false,
     isOverdefended: false,
     isUnderdefended: false,
@@ -39,8 +52,6 @@ export default function App() {
     showCheckHighlights: false,
     showForks: false,
   });
-
-  const toggleAnalysis = (key: keyof AnalysisState) => setAnalysis(prev => ({ ...prev, [key]: !prev[key] }));
 
   const moveHandler = useRef(new MoveHandler(game.chessGame));
 
@@ -51,8 +62,20 @@ export default function App() {
   // --- Board styling ---
   const visualStyles = useBoardStyles({
     chessGame: game.chessGame,
-    ...analysis,
+    ...appSettings,
     optionSquares: game.optionSquares,
+  });
+
+  // --- UI Board Setup ---
+  const currentPosition = fenStringToPositionObject(game.position, 8, 8);
+  const finalSquareStyles: Record<string, React.CSSProperties> = {
+    ...visualStyles.styles,
+  };
+  game.premoves.forEach(p => {
+    delete currentPosition[p.sourceSquare];
+    currentPosition[p.targetSquare!] = { pieceType: p.piece.pieceType };
+    finalSquareStyles[p.sourceSquare] = { backgroundColor: 'rgba(255,0,0,0.2)' };
+    finalSquareStyles[p.targetSquare!] = { backgroundColor: 'rgba(255,0,0,0.2)' };
   });
 
   // --- Handlers ---
@@ -79,11 +102,22 @@ export default function App() {
     const oldEval = currentEval;
 
     if (moveHandler.current.isPromotionMove(sourceSquare, targetSquare)) {
-      game.setPromotionMove({ sourceSquare, targetSquare });
-      return true;
+      if (!appSettings.autoPromoteToQueen) {
+        game.setPromotionMove({ sourceSquare, targetSquare });
+        return true;
+      }
     }
     const pieceColor = piece.pieceType[0]; // 'w' or 'b'
     if (game.chessGame.turn() !== pieceColor) {
+      if (!appSettings.enablePremove) return false;
+
+      const type = piece.pieceType[1].toLowerCase();
+      const color = piece.pieceType[0];
+      const allowedMoves = moveHandler.current.getTheoreticalMoves(sourceSquare, type, color);
+      if (!allowedMoves.includes(targetSquare as any)) {
+        return false;
+      }
+
       game.premovesRef.current.push({
         sourceSquare,
         targetSquare,
@@ -105,28 +139,44 @@ export default function App() {
       return true;
     }
 
-
     return false;
   };
 
   const onSquareClick = ({ square, piece }: SquareHandlerArgs) => {
     if (game.promotionMove) return;
-    if (!game.moveFrom && piece && piece.pieceType[0] === game.chessGame.turn()) {
-      game.setOptionSquares(moveHandler.current.getAvailableMovesSquares(square));
-      game.setMoveFrom(square);
-    } else if (game.moveFrom) {
-      const legalMoves = moveHandler.current.getLegalMoves(game.moveFrom).map(m => m.to);
-      if (legalMoves.includes(square as any)) {
-        const pieceData = game.chessGame.get(game.moveFrom as any);
-        if (pieceData) {
-          onPieceDrop({
-            sourceSquare: game.moveFrom,
-            targetSquare: square as any,
-            piece: { pieceType: `${pieceData.color}${pieceData.type.toUpperCase()}`, isSparePiece: false, position: square } as any
-          });
+
+    const isOurTurn = game.chessGame.turn() === 'w';
+    const isOurPiece = piece && piece.pieceType[0] === 'w';
+
+    if (!game.moveFrom && isOurPiece) {
+      if (isOurTurn) {
+        game.setOptionSquares(moveHandler.current.getAvailableMovesSquares(square));
+      } else {
+        if (appSettings.enablePremove) {
+          game.setOptionSquares(moveHandler.current.getPremoveOptionSquares(square, piece.pieceType[1].toLowerCase(), 'w'));
         }
       }
-      game.resetMoveState();
+      game.setMoveFrom(square);
+    } else if (game.moveFrom) {
+      let allowedMoves: string[] = [];
+      const fromPieceStr = currentPosition[game.moveFrom]?.pieceType;
+
+      if (isOurTurn) {
+        allowedMoves = moveHandler.current.getLegalMoves(game.moveFrom).map(m => m.to);
+      } else if (fromPieceStr) {
+        const type = fromPieceStr[1].toLowerCase();
+        const color = fromPieceStr[0];
+        allowedMoves = moveHandler.current.getTheoreticalMoves(game.moveFrom, type, color);
+      }
+
+      if (allowedMoves.includes(square as any) && fromPieceStr) {
+        onPieceDrop({
+          sourceSquare: game.moveFrom,
+          targetSquare: square as any,
+          piece: { pieceType: fromPieceStr, isSparePiece: false, position: square } as any
+        });
+      }
+      game.resetMoveState(false);
     }
   };
 
@@ -142,22 +192,7 @@ export default function App() {
     clearAnalysis();
   };
 
-  // --- UI Board Setup ---
-  const currentPosition = fenStringToPositionObject(game.position, 8, 8);
-  const finalSquareStyles: Record<string, React.CSSProperties> = {
-    ...visualStyles.styles, // <-- use the styles object
-  };
-  game.premoves.forEach(p => {
-    delete currentPosition[p.sourceSquare];
-    currentPosition[p.targetSquare!] = { pieceType: p.piece.pieceType };
-    finalSquareStyles[p.sourceSquare] = { backgroundColor: 'rgba(255,0,0,0.2)' };
-    finalSquareStyles[p.targetSquare!] = { backgroundColor: 'rgba(255,0,0,0.2)' };
-  });
 
-
-
-
-  ////////////// Premoving logics
 
   function canDragPiece({
     piece
@@ -165,27 +200,7 @@ export default function App() {
     return piece.pieceType[0] === 'w';
   }
 
-  // create a position object from the fen string to split the premoves from the game state
-  const position = fenStringToPositionObject(game.position, 8, 8);
-  const squareStyles: Record<string, React.CSSProperties> = {};
-
-  // add premoves to the position object to show them on the board
-  for (const premove of game.premoves) {
-    delete position[premove.sourceSquare];
-    position[premove.targetSquare!] = {
-      pieceType: premove.piece.pieceType
-    };
-    squareStyles[premove.sourceSquare] = {
-      backgroundColor: 'rgba(255,0,0,0.2)'
-    };
-    squareStyles[premove.targetSquare!] = {
-      backgroundColor: 'rgba(255,0,0,0.2)'
-    };
-  }
-
-
-
-
+  const [settingsOpen, setSettingsOpen] = useState(false);
   return (
     <div className="flex w-screen min-h-screen items-center justify-center bg-black p-4 md:p-8 font-sans antialiased text-white">
       <div className="flex flex-col md:flex-row items-start justify-center gap-6 md:gap-10 w-full max-w-[1200px]">
@@ -206,27 +221,60 @@ export default function App() {
             onSquareRightClick={onSquareRightClick}
             arrows={visualStyles.arrows}
             canDragPieces={canDragPiece}
+            options={{
+              darkSquareStyle: { backgroundColor: boardColors.dark },
+              lightSquareStyle: { backgroundColor: boardColors.light },
+              animationDurationInMs: animationDuration,
+              showAnimations: true,
+              id: 'chess-board'
+            }}
           />
-          <MoveAnalysis
-            diff={diff}
-            mate={mateIn}
-            openingName={openingName}
-            bookMoves={bookMoves}
+
+          <button
+            className="absolute top-2 left-2 px-1 py-1 bg-gray-700 text-white rounded z-50"
+            onClick={() => setSettingsOpen(true)}
+          >
+            <IoSettings />
+          </button>
+          {settingsOpen && (
+            <SettingsPanel
+              boardColors={boardColors}
+              animationDuration={animationDuration}
+              onChangeColors={setBoardColors}
+              onChangeAnimation={setAnimationDuration}
+              appSettings={appSettings}
+              onChangeSettings={setAppSettings}
+              onClose={() => setSettingsOpen(false)}
+            />
+          )}
+          <EngineControls
+            elo={elo}
+
+            isThinking={isThinking}
+
+            onEloChange={handleEloChange}
+            onToggleMode={handleModeToggle}
+
           />
+
         </div>
 
         <div className="flex flex-col gap-8 w-full md:w-64">
-          <EngineControls
-            elo={elo}
-            isRandom={isRandom}
-            isThinking={isThinking}
-            canUndo={game.chessGame.history().length > 0}
-            onEloChange={handleEloChange}
-            onToggleMode={handleModeToggle}
-            onUndo={handleUndo}
-          />
-          <AnalysisToggles state={analysis} onToggle={toggleAnalysis}        // pass state to AnalysisToggles
-          />
+
+          {appSettings.enableAnalysis && (
+            <MoveAnalysis
+              diff={diff}
+              mate={mateIn}
+              openingName={openingName}
+              bookMoves={bookMoves}
+              showEngineReaction={appSettings.showEngineReaction}
+              showBookMoves={appSettings.showBookMoves}
+            />
+          )}
+
+          {appSettings.enableUndo && (
+            <Undobutton canUndo={game.chessGame.history().length > 0} onUndo={handleUndo} isThinking={isThinking} />
+          )}
 
         </div>
       </div>

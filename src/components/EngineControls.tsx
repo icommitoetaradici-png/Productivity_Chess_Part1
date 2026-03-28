@@ -2,73 +2,86 @@ import React from 'react';
 
 interface EngineControlsProps {
   elo: number;
-  isRandom: boolean;
+
   isThinking: boolean;
-  canUndo: boolean;
+
   onEloChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onToggleMode: () => void;
+
+}
+interface UndoBT {
+
+
+  isThinking: boolean;
+  canUndo: boolean;
+
+
   onUndo: () => void;
 }
 
 const EngineControls: React.FC<EngineControlsProps> = ({
   elo,
-  isRandom,
   isThinking,
-  canUndo,
+
   onEloChange,
-  onToggleMode,
-  onUndo
+
 }) => {
   return (
-    <div className="flex flex-col gap-4">
-      <h3 className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">Opponent</h3>
-      <button
-        onClick={onToggleMode}
-        className={`px-5 py-2 text-xs font-medium rounded transition-all duration-300 border ${isRandom
-          ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.15)]'
-          : 'bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:text-neutral-200'
-          }`}
-        disabled={isThinking}
-      >
-        {isRandom ? 'Random Move Generator' : 'Stockfish 18 Engine'}
-      </button>
+    <div className="bg-neutral-900 p-4 rounded-xl w-full">
+      {/* Header: Tightened margin */}
+      <div className="flex justify-between items-baseline mb-3">
+        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">
+          ELO / Strength
+        </span>
+        {/* Reduced text size to minimize vertical space */}
+        <span className="text-2xl font-extralight text-white tabular-nums tracking-tight">
+          {elo}
+        </span>
+      </div>
 
-      {!isRandom && (
-        <div className="bg-neutral-900/50 p-5 rounded-xl border border-neutral-800 flex flex-col items-center gap-4">
-          <div className="flex justify-between w-full items-baseline">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-600">ELO</span>
-            <span className="text-3xl font-extralight text-white tabular-nums">{elo}</span>
-          </div>
+      {/* Slider Track: Thinner handle for a sleeker look */}
+      <div className="relative group mb-2">
+        <div className="w-full h-1 bg-neutral-800 rounded-full" />
 
-          <div className="w-full relative h-2 bg-neutral-800 rounded-full overflow-hidden">
-            <div
-              className="absolute h-full bg-white transition-all duration-300"
-              style={{ width: `${((elo - 1350) / (3190 - 1350)) * 100}%` }}
-            />
-            <input
-              type="range" min="1350" max="3190" step="10" value={elo}
-              onChange={onEloChange}
-              disabled={isThinking}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-          </div>
+        <div
+          className="absolute top-0 left-0 h-1 bg-neutral-400 rounded-full transition-all duration-150"
+          style={{ width: `${((elo - 1350) / (3190 - 1350)) * 100}%` }}
+        />
 
-          <div className="flex justify-between w-full text-[9px] font-bold uppercase tracking-widest text-neutral-700">
-            <span>Beginner</span>
-            <span>Grandmaster</span>
-          </div>
-        </div>
-      )}
+        {/* Smaller thumb (w-2.5 h-2.5) to match the slimmer profile */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white rounded-full shadow-sm transition-transform duration-150 group-hover:scale-125 pointer-events-none"
+          style={{ left: `calc(${((elo - 1350) / (3190 - 1350)) * 100}% - 5px)` }}
+        />
 
-      <button
-        onClick={onUndo}
-        className="px-5 py-2 text-xs font-medium rounded transition-all duration-300 border bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:text-neutral-200"
-        disabled={isThinking || !canUndo}
-      >
-        Undo Move
-      </button>
+        <input
+          type="range"
+          min="1350"
+          max="3190"
+          step="10"
+          value={elo}
+          onChange={onEloChange}
+          disabled={isThinking}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+        />
+      </div>
+
+      {/* Footer: Tighter margin */}
+      <div className="flex justify-between text-[9px] font-medium text-neutral-600 tabular-nums">
+        <span>1,350</span>
+        <span>3,190</span>
+      </div>
     </div>
   );
 };
 
 export default EngineControls;
+export const Undobutton: React.FC<UndoBT> = ({ canUndo, onUndo, isThinking }) => {
+  return (
+    <button
+      onClick={onUndo}
+      className="px-5 py-2 text-xs font-medium rounded transition-all duration-300 border bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:text-neutral-200"
+      disabled={isThinking || !canUndo}>
+      Undo Move
+    </button >)
+}

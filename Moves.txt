@@ -1,0 +1,79 @@
+ Tactical Hints (High Priority)
+If move gives check
+→ "Look for a forcing move"
+If move is checkmate
+→ "You have a winning move"
+If move creates a fork
+→ "There is a fork opportunity"
+If move pins a piece
+→ "You can pin a piece"
+If move skewers
+→ "A skewer tactic is possible"
+If opponent piece is hanging
+→ "Something is undefended"
+
+
+ Material-Based Hints
+If move is a capture (x)
+→ "A strong capture is available"
+If capture leads to big eval gain
+→ "You can win material"
+If equal trade improves position
+→ "A favorable exchange is possible"
+
+
+ Threat-Based Hints
+If move creates a threat next move
+→ "You are creating a threat"
+If move attacks high-value piece
+→ "You can pressure an important piece"
+
+
+ Positional Hints (Fallback Tier)
+If opening phase + develops piece
+→ "Develop your pieces"
+If controls center
+→ "Control the center"
+If improves piece activity
+→ "Improve piece activity"
+If king safety improves (castling)
+→ "Improve king safety"
+
+
+ Fallback Logic
+If fits none + opening phase
+→ "A development move"
+If fits none + midgame
+→ "Improve your position"
+If fits none + endgame
+→ "Activate your pieces"
+If still nothing meaningful
+→ null (skip Stage 1 hint)
+
+
+ Optional Variation (for natural feel)
+
+Instead of repeating same sentence:
+
+Capture Variations
+"A strong capture is available"
+"Consider capturing here"
+"You can gain material"
+Development Variations
+"Develop your pieces"
+"Bring a piece into the game"
+"Improve your development"
+
+
+Hint Stages Integration
+Stage 1
+
+→ Use sentences from above
+
+Stage 2
+
+→ Highlight target square only
+
+Stage 3
+
+→ Show full best move

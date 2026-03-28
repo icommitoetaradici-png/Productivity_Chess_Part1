@@ -62,11 +62,10 @@ interface BoardProps {
     onSquareRightClick: () => void;
     arrows: any;
     canDragPieces: any,
+    options: any,
 }
 
-export const BoardComponent: React.FC<BoardProps> = (props) => (
-
-
-    <Chessboard options={{ ...props, showAnimations: true, id: 'chess-board', darkSquareStyle: { backgroundColor: 'rgb(64,64,64)' }, lightSquareStyle: { backgroundColor: 'white' }, animationDurationInMs: 400, }} />
-
+export const BoardComponent: React.FC<BoardProps> = ({ options, ...rest }) => (
+    <Chessboard options={{ ...rest, ...options }} />
 );
+

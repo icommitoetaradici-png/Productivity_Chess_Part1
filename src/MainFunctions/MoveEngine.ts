@@ -1,14 +1,6 @@
 import { Chess } from 'chess.js';
 import { type MoveEngine } from '../types';
 
-export class RandomMoveEngine implements MoveEngine {
-    getNextMove(chessGame: Chess): string | null {
-        if (chessGame.isGameOver()) return null;
-        const moves = chessGame.moves();
-        if (moves.length === 0) return null;
-        return moves[Math.floor(Math.random() * moves.length)];
-    }
-}
 
 /**
  * Base class for engines using a Stockfish worker.
@@ -80,7 +72,7 @@ export class StockfishEngine extends BaseStockfishEngine implements MoveEngine {
 
     private updateConfiguration() {
         this.postCommand('setoption name UCI_LimitStrength value true');
-        this.postCommand(`setoption name UCI_Elo value ${Math.max(1350, this.elo)}`);
+        this.postCommand(`setoption name UCI_Elo value ${Math.max(1350, Math.min(3190, this.elo))}`);
     }
 
     async getNextMove(chessGame: Chess): Promise<string | null> {
@@ -93,9 +85,11 @@ export class StockfishEngine extends BaseStockfishEngine implements MoveEngine {
         return new Promise((resolve) => {
             this.moveResolver = resolve;
             this.bestMove = null;
+            let tme = Math.ceil(Math.random() * 5000)
 
             this.postCommand(`position fen ${chessGame.fen()}`);
-            this.postCommand('go movetime 2000'); // 1 second
+            this.postCommand(`go movetime ${tme}`); // 1 second
+            console.log(`${tme}`)
 
 
 

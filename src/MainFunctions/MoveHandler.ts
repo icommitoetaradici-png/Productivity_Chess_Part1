@@ -41,13 +41,95 @@ export class MoveHandler {
         moves.forEach(m => {
             squares[m.to] = {
                 background: this.chess.get(m.to as Square)
-                    ? 'radial-gradient(circle, rgba(0,0,0,.1) 85%, transparent 85%)'
-                    : 'radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)',
+                    ? 'radial-gradient(circle, rgba(0,0,0,.2) 85%, transparent 85%)'
+                    : 'radial-gradient(circle, rgba(0,0,0,.1) 30%, transparent 30%)',
                 borderRadius: '50%'
             };
         });
 
-        squares[square] = { background: 'rgba(255, 255, 0, 0.4)' };
+        squares[square] = { background: 'rgba(255, 255, 255, 0.4)' };
+        return squares;
+    }
+
+    getTheoreticalMoves(square: string, pieceType: string, pieceColor: string): string[] {
+        const file = square.charCodeAt(0);
+        const rank = parseInt(square[1], 10);
+        const moves: string[] = [];
+
+        const addIfValid = (f: number, r: number) => {
+            if (f >= 97 && f <= 104 && r >= 1 && r <= 8) {
+                moves.push(`${String.fromCharCode(f)}${r}`);
+            }
+        };
+
+        const pType = pieceType.toLowerCase();
+        if (pType === 'p') {
+            const direction = pieceColor === 'w' ? 1 : -1;
+            const startRank = pieceColor === 'w' ? 2 : 7;
+            addIfValid(file, rank + direction);
+            if (rank === startRank) {
+                addIfValid(file, rank + 2 * direction);
+            }
+            addIfValid(file - 1, rank + direction);
+            addIfValid(file + 1, rank + direction);
+        } else if (pType === 'n') {
+            const kn = [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]];
+            kn.forEach(([df, dr]) => addIfValid(file + df, rank + dr));
+        } else if (pType === 'b') {
+            for (let i = 1; i <= 7; i++) {
+                addIfValid(file + i, rank + i);
+                addIfValid(file - i, rank + i);
+                addIfValid(file + i, rank - i);
+                addIfValid(file - i, rank - i);
+            }
+        } else if (pType === 'r') {
+            for (let i = 1; i <= 7; i++) {
+                addIfValid(file + i, rank);
+                addIfValid(file - i, rank);
+                addIfValid(file, rank + i);
+                addIfValid(file, rank - i);
+            }
+        } else if (pType === 'q') {
+            for (let i = 1; i <= 7; i++) {
+                addIfValid(file + i, rank);
+                addIfValid(file - i, rank);
+                addIfValid(file, rank + i);
+                addIfValid(file, rank - i);
+                addIfValid(file + i, rank + i);
+                addIfValid(file - i, rank + i);
+                addIfValid(file + i, rank - i);
+                addIfValid(file - i, rank - i);
+            }
+        } else if (pType === 'k') {
+            const kn = [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+            kn.forEach(([df, dr]) => addIfValid(file + df, rank + dr));
+            if (square === 'e1' && pieceColor === 'w') {
+                addIfValid(file + 2, rank);
+                addIfValid(file - 2, rank);
+            }
+            if (square === 'e8' && pieceColor === 'b') {
+                addIfValid(file + 2, rank);
+                addIfValid(file - 2, rank);
+            }
+        }
+
+        return [...new Set(moves)];
+    }
+
+    getPremoveOptionSquares(square: string, pieceType: string, pieceColor: string) {
+        const moves = this.getTheoreticalMoves(square, pieceType, pieceColor);
+        const squares: Record<string, React.CSSProperties> = {};
+
+        moves.forEach(m => {
+            squares[m] = {
+                background: this.chess.get(m as Square)
+                    ? 'radial-gradient(circle, rgba(0,0,0,.2) 85%, transparent 85%)'
+                    : 'radial-gradient(circle, rgba(0,0,0,.1) 30%, transparent 30%)',
+                borderRadius: '50%'
+            };
+        });
+
+        squares[square] = { background: 'rgba(0, 0, 0, 0)' };
         return squares;
     }
 }

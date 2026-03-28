@@ -13,7 +13,7 @@ export function useBookMoves(fen: string) {
     const [bookMoves, setBookMoves] = useState<BookMove[]>([]);
     const [openingsDB, setOpeningsDB] = useState<any>(null);
 
-    // Load openings once
+    // Load opening database once
     useEffect(() => {
         openingBook().then(setOpeningsDB).catch(err => console.error("Failed to load opening book", err));
     }, []);
@@ -21,15 +21,11 @@ export function useBookMoves(fen: string) {
     useEffect(() => {
         if (!openingsDB || !fen) return;
 
-        // Find the opening by FEN
+        // 1. Check if current position is in the book
         const opening = findOpening(openingsDB, fen);
-        if (opening) {
-            setOpeningName(opening.name);
-        } else {
-            setOpeningName(null);
-        }
+        setOpeningName(opening ? opening.name : null);
 
-        // Get next moves from the book
+        // 2. Get available theoretical moves from this position
         getFromTos(fen).then(res => {
             if (res && res.next) {
                 setBookMoves(res.next.map((m: any) => ({
@@ -41,9 +37,8 @@ export function useBookMoves(fen: string) {
             } else {
                 setBookMoves([]);
             }
-        }).catch(() => {
-            setBookMoves([]);
-        });
+        }).catch(() => setBookMoves([]));
+
     }, [fen, openingsDB]);
 
     return { openingName, bookMoves };

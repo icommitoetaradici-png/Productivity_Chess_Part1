@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RandomMoveEngine, StockfishEngine } from '../MainFunctions/MoveEngine';
+import { StockfishEngine } from '../MainFunctions/MoveEngine';
 import type { MoveEngine } from '../types';
 
 export function useEngine(game: any) {
@@ -17,7 +17,7 @@ export function useEngine(game: any) {
     const handleModeToggle = () => {
         setIsRandom(prev => !prev);
         engine.terminate?.();
-        setEngine(!isRandom ? new RandomMoveEngine() : new StockfishEngine('/stockfish-18-lite-single.js', elo));
+        setEngine(new StockfishEngine('/stockfish-18-lite-single.js', elo));
     };
 
     const makeEngineMove = async (onPieceDrop: (args: any) => boolean) => {
