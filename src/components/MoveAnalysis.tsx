@@ -49,18 +49,29 @@ const MoveAnalysis = ({ diff, mate, openingName, bookMoves, showEngineReaction, 
         return 'Blunder';
     }, [diff, mate]);
 
+    const remarkColor = useMemo(() => {
+        if (mate !== null) return mate > 0 ? 'text-emerald-400' : 'text-rose-400';
+        if (diff === null) return 'text-neutral-400';
+        if (diff >= 0.05) return 'text-emerald-500'; // Best Move
+        if (diff >= -0.15) return 'text-emerald-400'; // Excellent
+        if (diff >= -0.45) return 'text-blue-400';    // Good
+        if (diff >= -0.90) return 'text-yellow-400'; // Inaccuracy
+        if (diff >= -2.00) return 'text-orange-400'; // Mistake
+        return 'text-rose-500';                      // Blunder
+    }, [diff, mate]);
+
     const diffDisplay = useMemo(() => {
         if (mate !== null) return mate > 0 ? `M${mate}` : `M${mate}`;
         return diff === null ? '—' : (diff > 0 ? '+' : '') + diff.toFixed(2);
     }, [diff, mate]);
 
     if (!showEngineReaction && !showBookMoves) return null;
-    
+
     // If we're not supposed to show engine, and there are no book moves we shouldn't render the main box either
     const showMainSection = isBookMove || showEngineReaction;
 
     return (
-        <div className="w-full max-w-sm mx-auto bg-neutral-900 border border-neutral-800 rounded-xl text-white overflow-hidden shadow-xl">
+        <div className="w-100! max-w-sm mx-auto bg-neutral-900 border border-neutral-800 rounded-xl text-white overflow-hidden shadow-xl">
 
             {/* Main Analysis Section */}
             {showMainSection && (
@@ -75,9 +86,9 @@ const MoveAnalysis = ({ diff, mate, openingName, bookMoves, showEngineReaction, 
                                 transition={{ duration: 0.2 }}
                                 className="space-y-2"
                             >
-                                <div className="inline-block px-3 py-1 rounded-full bg-neutral-800 border border-neutral-700 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                                <div className="inline-block px-3 py-1 rounded-full bg-blue-900/40 border border-blue-500/30 text-[10px] font-bold uppercase tracking-widest text-blue-400">
                                     {/* Key prop ensures animation replays if text changes */}
-                                    <AnimatedText key="book-label" text="Book Move" />
+                                    <AnimatedText key="book-label" text="Book Move" className="text-blue-400" />
                                 </div>
                                 <div className="text-base font-semibold text-white leading-tight">
                                     <AnimatedText key={openingName} text={openingName || ''} />
@@ -95,8 +106,8 @@ const MoveAnalysis = ({ diff, mate, openingName, bookMoves, showEngineReaction, 
                                 <p className="text-xs uppercase tracking-wider text-neutral-500">
                                     <AnimatedText key="quality-label" text="Move Quality" />
                                 </p>
-                                <h3 className="text-xl font-bold text-white">
-                                    <AnimatedText key={engineRemark} text={engineRemark} />
+                                <h3 className={`text-xl font-bold ${remarkColor}`}>
+                                    <AnimatedText key={engineRemark} text={engineRemark} className={remarkColor} />
                                 </h3>
                                 <p className="text-xs text-neutral-400 font-mono h-4">
                                     <AnimatedText key={diffDisplay} text={diffDisplay} />
@@ -125,7 +136,7 @@ const MoveAnalysis = ({ diff, mate, openingName, bookMoves, showEngineReaction, 
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.3 + (i * 0.05), duration: 0.2 }}
-                                className="px-3 py-1.5 bg-neutral-800 border border-neutral-700 rounded-md text-xs text-neutral-300 font-mono"
+                                className="px-3 py-1.5 bg-blue-900/20 border border-blue-500/20 rounded-md text-xs text-blue-300 font-mono"
                             >
                                 {m.san}
                             </motion.span>

@@ -106,11 +106,22 @@ export class StockfishEngine extends BaseStockfishEngine implements MoveEngine {
     }
 }
 
+export interface ChessApiResponse {
+    bestmove: string;
+    san: string;
+    text: string;
+    eval: number;
+    mate: number | null;
+    continuationArr: string[];
+    winChance: number;
+    [key: string]: any;
+}
+
 export class ChessApiEvalEngine {
-    private onEvalUpdate: (evaluation: number, fen: string, mate?: number) => void;
+    private onEvalUpdate: (evaluation: number, fen: string, data: ChessApiResponse, mate?: number) => void;
     private abortController: AbortController | null = null;
 
-    constructor(onEvalUpdate: (evaluation: number, fen: string, mate?: number) => void) {
+    constructor(onEvalUpdate: (evaluation: number, fen: string, data: ChessApiResponse, mate?: number) => void) {
         this.onEvalUpdate = onEvalUpdate;
     }
 
@@ -122,25 +133,31 @@ export class ChessApiEvalEngine {
             const response = await fetch("https://chess-api.com/v1", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ fen }),
+                body: JSON.stringify({
+                    fen,
+                    depth: 17
+                }),
+
                 signal: this.abortController.signal
             });
 
             if (!response.ok) throw new Error(`API error: ${response.status}`);
 
-            const data = await response.json();
+            const data: ChessApiResponse = await response.json();
 
             if (data.eval !== undefined) {
-                const evalNum = parseFloat(data.eval); // numeric pawns
+                const evalNum = parseFloat(data.eval as any); // numeric pawns
                 const mate = data.mate ?? undefined;   // optional mate
+                console.log(data)
 
-                this.onEvalUpdate(evalNum, fen, mate);      // send numeric eval + fen + mate
+                this.onEvalUpdate(evalNum, fen, data, mate);      // send numeric eval + fen + FULL DATA + mate
             }
         } catch (error: any) {
             if (error.name === 'AbortError') return;
             console.error('❌ Chess API Error:', error);
         }
     }
+
 
     public terminate() {
         if (this.abortController) this.abortController.abort();

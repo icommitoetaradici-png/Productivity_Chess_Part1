@@ -38,7 +38,7 @@ export function useChessGame() {
 
     const updatePosition = (newFen: string) => {
         setPosition(newFen);
-        console.log(newFen);
+
     };
 
 

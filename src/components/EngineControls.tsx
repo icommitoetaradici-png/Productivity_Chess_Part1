@@ -1,21 +1,15 @@
 import React from 'react';
+import { FaUndo } from "react-icons/fa";
 
 interface EngineControlsProps {
   elo: number;
-
   isThinking: boolean;
-
   onEloChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onToggleMode: () => void;
-
 }
 interface UndoBT {
-
-
   isThinking: boolean;
   canUndo: boolean;
-
-
   onUndo: () => void;
 }
 
@@ -80,8 +74,8 @@ export const Undobutton: React.FC<UndoBT> = ({ canUndo, onUndo, isThinking }) =>
   return (
     <button
       onClick={onUndo}
-      className="px-5 py-2 text-xs font-medium rounded transition-all duration-300 border bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:text-neutral-200"
+      className="w-full py-2 text-xs font-medium rounded transition-all duration-300 border bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:text-neutral-200"
       disabled={isThinking || !canUndo}>
-      Undo Move
+      <FaUndo />
     </button >)
 }

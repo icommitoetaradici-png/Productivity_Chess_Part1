@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ChessApiEvalEngine } from '../MainFunctions/MoveEngine';
+import { ChessApiEvalEngine, type ChessApiResponse } from '../MainFunctions/MoveEngine';
 
 interface PendingAnalysis {
     evalBeforeMove: number;
@@ -9,6 +9,9 @@ interface PendingAnalysis {
 export function useEvaluation(chessGame: any, position: string) {
     const [currentEval, setCurrentEval] = useState<number>(0);
     const [mateIn, setMateIn] = useState<number | null>(null);
+    const [smoothedEval, setSmoothedEval] = useState<number>(0);
+    const [hintData, setHintData] = useState<ChessApiResponse | null>(null);
+
     const [diff, setDiff] = useState<number | null>(null);
 
     const evalEngineRef = useRef<ChessApiEvalEngine | null>(null);
@@ -21,12 +24,30 @@ export function useEvaluation(chessGame: any, position: string) {
     });
 
     useEffect(() => {
-        const engineInstance = new ChessApiEvalEngine((evalNum: number, fen: string, mate?: number) => {
-            // Only update current context if this evaluation is for the LATEST state
-            if (fen === chessGame.fen()) {
-                setCurrentEval(evalNum);
-                setMateIn(mate ?? null);
+        const engineInstance = new ChessApiEvalEngine((evalNum: number, fen: string, data: ChessApiResponse, mate?: number) => {
+            function normalizeEval(cp: number) {
+                const k = 3;
+                return 2 / (1 + Math.exp(-cp / k)) - 1;
             }
+
+            if (fen === chessGame.fen()) {
+                const rawEval = normalizeEval(evalNum);
+
+                // EMA smoothing: 70% previous + 30% new (adjust alpha for more/less smoothing)
+                const alpha = 0.3;
+                const smoothed = smoothedEval === 0 ? rawEval : smoothedEval + alpha * (rawEval - smoothedEval);
+                setSmoothedEval(smoothed);
+                setCurrentEval(smoothed);  // Use smoothed value
+                setMateIn(mate ?? null);
+
+                // Store hint data only if it's player's turn (White)
+                if (data.turn === 'w') {
+                    setHintData(data);
+                } else {
+                    setHintData(null);
+                }
+            }
+
 
             // Check if we were specifically waiting for this FEN to complete move analysis
             const pending = moveAnalysisRef.current.pending[fen];
@@ -64,6 +85,7 @@ export function useEvaluation(chessGame: any, position: string) {
         currentEval,
         mateIn,
         diff,
+        hintData,
         registerMoveForAnalysis,
         clearAnalysis
     };

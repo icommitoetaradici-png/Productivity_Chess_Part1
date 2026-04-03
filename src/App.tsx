@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { fenStringToPositionObject } from 'react-chessboard';
 import type { PieceDropHandlerArgs, PieceHandlerArgs, SquareHandlerArgs } from 'react-chessboard';
 import type { PieceSymbol } from 'chess.js';
+import "@radix-ui/themes/styles.css";
 
 import { useChessGame } from './MainFunctions/useChessGame';
 import { MoveHandler } from './MainFunctions/MoveHandler';
@@ -17,6 +18,7 @@ import EngineControls, { Undobutton } from './components/EngineControls';
 import { PromotionDialog, BoardComponent } from './components/BoardComponents';
 import MoveAnalysis from './components/MoveAnalysis';
 
+
 import { SettingsPanel, type AppSettings } from './components/SettingsPanel';
 
 // Custom settings option///////////////
@@ -24,14 +26,14 @@ import { IoSettings } from "react-icons/io5";
 
 //////////////////////////////////////////
 
-
-
+import Hints from './components/Hints';
+import GameHistory from './components/GameHistory';
 export default function App() {
   const game = useChessGame();
 
 
   // Logic Hooks
-  const { currentEval, mateIn, diff, registerMoveForAnalysis, clearAnalysis } = useEvaluation(game.chessGame, game.position);
+  const { currentEval, mateIn, diff, hintData, registerMoveForAnalysis, clearAnalysis } = useEvaluation(game.chessGame, game.position);
   const { elo, isThinking, handleEloChange, handleModeToggle, makeEngineMove } = useEngine(game);
   const { openingName, bookMoves } = useBookMoves(game.position);
 
@@ -230,23 +232,7 @@ export default function App() {
             }}
           />
 
-          <button
-            className="absolute top-2 left-2 px-1 py-1 bg-gray-700 text-white rounded z-50"
-            onClick={() => setSettingsOpen(true)}
-          >
-            <IoSettings />
-          </button>
-          {settingsOpen && (
-            <SettingsPanel
-              boardColors={boardColors}
-              animationDuration={animationDuration}
-              onChangeColors={setBoardColors}
-              onChangeAnimation={setAnimationDuration}
-              appSettings={appSettings}
-              onChangeSettings={setAppSettings}
-              onClose={() => setSettingsOpen(false)}
-            />
-          )}
+
           <EngineControls
             elo={elo}
 
@@ -259,8 +245,30 @@ export default function App() {
 
         </div>
 
-        <div className="flex flex-col gap-8 w-full md:w-64">
+        <div className="flex flex-col gap-2 w-100! md:w-64">
+          <GameHistory game={game} />
 
+          <div className='flex items-center justify-between gap-12'>
+            {appSettings.enableUndo && (
+              <Undobutton canUndo={game.chessGame.history().length > 0} onUndo={handleUndo} isThinking={isThinking} />
+            )}
+            <button
+              className="px-1 w-full flex gap-4 justify-center items-center h-12 bg-zinc-900!  text-white rounded-full z-50"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <IoSettings />
+            </button><Hints game={game} hintData={hintData} /></div>
+          {settingsOpen && (
+            <SettingsPanel
+              boardColors={boardColors}
+              animationDuration={animationDuration}
+              onChangeColors={setBoardColors}
+              onChangeAnimation={setAnimationDuration}
+              appSettings={appSettings}
+              onChangeSettings={setAppSettings}
+              onClose={() => setSettingsOpen(false)}
+            />
+          )}
           {appSettings.enableAnalysis && (
             <MoveAnalysis
               diff={diff}
@@ -272,9 +280,7 @@ export default function App() {
             />
           )}
 
-          {appSettings.enableUndo && (
-            <Undobutton canUndo={game.chessGame.history().length > 0} onUndo={handleUndo} isThinking={isThinking} />
-          )}
+
 
         </div>
       </div>
