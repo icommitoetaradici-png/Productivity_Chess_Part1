@@ -74,7 +74,7 @@ export const Undobutton: React.FC<UndoBT> = ({ canUndo, onUndo, isThinking }) =>
   return (
     <button
       onClick={onUndo}
-      className="w-full py-2 text-xs font-medium rounded transition-all duration-300 border bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:text-neutral-200"
+      className=" w-20! h-13 text-xs font-medium rounded transition-all duration-300 border bg-transparent text-neutral-400 border-neutral-800 hover:border-neutral-600 hover:text-neutral-200 flex justify-center items-center"
       disabled={isThinking || !canUndo}>
       <FaUndo />
     </button >)

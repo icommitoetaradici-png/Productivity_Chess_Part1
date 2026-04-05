@@ -10,7 +10,7 @@ const Hints = ({ game, hintData }: { game: any; hintData: ChessApiResponse | nul
             <Dialog.Root>
                 <Dialog.Trigger>
                     <Button
-                        className='px-1 flex gap-4 h-12! w-15! justify-center text-2xl items-center py-3! bg-zinc-900! text-white rounded-full z-50 cursor-pointer'
+                        className='px-1 flex text-xl!  gap-4 h-12! w-15! justify-center items-center py-3! bg-zinc-900! text-white rounded-full z-50 cursor-pointer'
                         disabled={!isPlayerTurn || !hintData}
                     >
                         <GoLightBulb />

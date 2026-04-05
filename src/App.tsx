@@ -253,10 +253,10 @@ export default function App() {
               <Undobutton canUndo={game.chessGame.history().length > 0} onUndo={handleUndo} isThinking={isThinking} />
             )}
             <button
-              className="px-1 w-full flex gap-4 justify-center items-center h-12 bg-zinc-900!  text-white rounded-full z-50"
+              className=" w-63! flex gap-4 justify-center items-center h-12 bg-zinc-900!  text-white rounded-full z-50"
               onClick={() => setSettingsOpen(true)}
             >
-              <IoSettings />
+              <IoSettings className='text-xl' />Settings
             </button><Hints game={game} hintData={hintData} /></div>
           {settingsOpen && (
             <SettingsPanel
