@@ -71,7 +71,7 @@ export default function GameHistory({ game }: GameHistoryProps) {
           }
           return result;
         }, []).map((pair: string[], i: number) => (
-          <div key={i} className="flex items-center justify-between text-sm px-2 py-1.5 rounded hover:bg-white/5 transition-colors group">
+          <div key={i} className="flex items-center justify-between text-sm px-2 py-1.5 rounded hover:bg-white/5  transition-colors group">
             <span className="text-neutral-500 font-mono text-xs w-6">{i + 1}.</span>
             <div className="flex gap-6 font-mono text-neutral-200">
               <span className="w-15 text-right group-hover:text-white transition-colors">{pair[0]}</span>
@@ -94,21 +94,21 @@ export default function GameHistory({ game }: GameHistoryProps) {
         {customGameState.isGameOver ? (
           <button
             onClick={newGame}
-            className="w-full px-4 py-2 bg-white text-black hover:bg-neutral-200 rounded text-sm font-bold transition-colors border border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+            className="w-full px-4 py-2 bg-black! text-black hover:bg-neutral-200 rounded text-sm font-bold transition-colors border border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]"
           >
             New Game
           </button>
         ) : (
           <button
             onClick={regenerate}
-            className="w-full px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-sm font-medium transition-colors border border-neutral-700"
+            className="w-full px-4 py-2 bg-zinc-900! hover:bg-neutral-700 text-white rounded text-sm font-medium transition-colors border border-neutral-700"
           >
             Regenerate
           </button>
         )}
         <button
           onClick={copyFEN}
-          className="w-full px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-sm font-medium transition-colors border border-neutral-700"
+          className="w-full px-4 py-2 bg-zinc-900! hover:bg-neutral-700 text-white rounded text-sm font-medium transition-colors border border-neutral-700"
         >
           Copy FEN
         </button>
