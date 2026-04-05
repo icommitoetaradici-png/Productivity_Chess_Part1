@@ -33,7 +33,7 @@ export default function App() {
 
 
   // Logic Hooks
-  const { currentEval, mateIn, diff, hintData, registerMoveForAnalysis, clearAnalysis } = useEvaluation(game.chessGame, game.position);
+  const { currentEval, rawScore, mateIn, diff, hintData, registerMoveForAnalysis, clearAnalysis } = useEvaluation(game.chessGame, game.position);
   const { elo, isThinking, handleEloChange, handleModeToggle, makeEngineMove } = useEngine(game);
   const { openingName, bookMoves } = useBookMoves(game.position);
 
@@ -84,7 +84,7 @@ export default function App() {
   const onPromotionSelect = (piece: PieceSymbol) => {
     if (!game.promotionMove) return;
 
-    const oldEval = currentEval;
+    const oldEval = rawScore;
     moveHandler.current.executeMove(game.promotionMove.sourceSquare, game.promotionMove.targetSquare, piece);
     const newFen = game.chessGame.fen();
     game.updatePosition(newFen);
@@ -101,7 +101,7 @@ export default function App() {
     if (!targetSquare || sourceSquare === targetSquare) return false;
     if (piece.pieceType[0] !== 'w') return false;
 
-    const oldEval = currentEval;
+    const oldEval = rawScore;
 
     if (moveHandler.current.isPromotionMove(sourceSquare, targetSquare)) {
       if (!appSettings.autoPromoteToQueen) {

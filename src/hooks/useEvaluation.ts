@@ -8,6 +8,7 @@ interface PendingAnalysis {
 
 export function useEvaluation(chessGame: any, position: string) {
     const [currentEval, setCurrentEval] = useState<number>(0);
+    const [rawScore, setRawScore] = useState<number>(0);
     const [mateIn, setMateIn] = useState<number | null>(null);
     const [smoothedEval, setSmoothedEval] = useState<number>(0);
     const [hintData, setHintData] = useState<ChessApiResponse | null>(null);
@@ -31,6 +32,7 @@ export function useEvaluation(chessGame: any, position: string) {
             }
 
             if (fen === chessGame.fen()) {
+                setRawScore(evalNum);
                 const rawEval = normalizeEval(evalNum);
 
                 // EMA smoothing: 70% previous + 30% new (adjust alpha for more/less smoothing)
@@ -83,6 +85,7 @@ export function useEvaluation(chessGame: any, position: string) {
 
     return {
         currentEval,
+        rawScore,
         mateIn,
         diff,
         hintData,

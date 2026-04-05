@@ -55,7 +55,7 @@ export default function GameHistory({ game }: GameHistoryProps) {
   };
 
   return (
-    <div className="w-100! xl:w-80 bg-neutral-900/40 border border-neutral-800 rounded-xl p-5 flex flex-col h-[300px] backdrop-blur-sm shadow-2xl">
+    <div className="w-100! xl:w-80 bg-neutral-900/40 border border-neutral-800 rounded-xl p-5 flex flex-col h-[400px] backdrop-blur-sm shadow-2xl">
       <h3 className="font-semibold text-lg tracking-tight mb-4 border-b border-neutral-800 pb-2">Game History</h3>
 
       {/* Scrollable History List */}
@@ -94,7 +94,7 @@ export default function GameHistory({ game }: GameHistoryProps) {
         {customGameState.isGameOver ? (
           <button
             onClick={newGame}
-            className="w-full px-4 py-2 bg-black! text-black hover:bg-neutral-200 rounded text-sm font-bold transition-colors border border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+            className="w-full px-4 py-2 bg-zinc-900! text-white hover:bg-neutral-200 rounded text-sm font-bold transition-colors border border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]"
           >
             New Game
           </button>
